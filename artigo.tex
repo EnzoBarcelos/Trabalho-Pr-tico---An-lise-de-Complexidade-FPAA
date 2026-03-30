@@ -1,0 +1,270 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage{graphicx,url}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\sloppy
+
+\title{Análise Comparativa de Estruturas Disjoint Set Union:\\Impacto das Heurísticas de Otimização no Algoritmo de Kruskal}
+
+\author{Enzo Barcelos\inst{1}}
+
+\address{Curso de Engenharia de Software -- Pontifícia Universidade Católica de Minas Gerais (PUC Minas)
+  \email{enzo.barcelos@sga.pucminas.br}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  This paper presents an experimental analysis of three variants of the Disjoint Set Union (DSU) data structure applied to Kruskal's algorithm for computing Minimum Spanning Trees. The implementations --- Naive, Union by Rank, and Full Tarjan (Union by Rank with Path Compression) --- were compared in terms of execution time and number of memory access operations for graphs of increasing size. The results confirm the theoretical expectations, showing the practical transition between complexity classes $O(n)$, $O(\log n)$ and $O(\alpha(n))$, where $\alpha$ denotes the inverse Ackermann function.
+\end{abstract}
+
+\begin{resumo}
+  Este trabalho apresenta uma análise experimental de três variantes da estrutura de dados Disjoint Set Union (DSU) aplicadas ao algoritmo de Kruskal para o cálculo de Árvores Geradoras Mínimas. As implementações --- Ingênua, Union by Rank e Tarjan Completa (Union by Rank com Path Compression) --- foram comparadas em termos de tempo de execução e número de operações de acesso à memória para grafos de tamanho crescente. Os resultados confirmam as expectativas teóricas, evidenciando na prática a transição entre as classes de complexidade $O(n)$, $O(\log n)$ e $O(\alpha(n))$, onde $\alpha$ denota a inversa da função de Ackermann.
+\end{resumo}
+
+
+\section{Introdução}
+
+O problema de gerenciar conjuntos disjuntos aparece em diversos contextos da computação. Seja no processamento de imagens, onde pixels vizinhos precisam ser agrupados em regiões, ou em redes de computadores, onde é preciso verificar se dois nós pertencem à mesma componente conectada, a necessidade de manter e consultar partições de elementos é recorrente.
+
+A estrutura de dados conhecida como \textit{Disjoint Set Union} (DSU), ou simplesmente \textit{Union-Find}, foi projetada para resolver esse problema de forma eficiente. Ela mantém uma coleção de conjuntos disjuntos e oferece duas operações fundamentais: \texttt{Find}, que identifica a qual conjunto um elemento pertence, e \texttt{Union}, que funde dois conjuntos em um só.
+
+Uma implementação simples dessa estrutura, utilizando árvores sem nenhum critério de balanceamento, pode levar a cadeias longas de ponteiros, degradando o desempenho das operações para $O(n)$ no pior caso. Robert Tarjan propôs duas heurísticas que, quando combinadas, reduzem a complexidade amortizada para $O(\alpha(n))$, onde $\alpha$ é a inversa da função de Ackermann --- uma função que cresce tão lentamente que, para qualquer valor prático de $n$, seu resultado não ultrapassa 4 \cite{tarjan1975}.
+
+O presente trabalho tem como objetivo implementar três variantes do DSU com níveis crescentes de otimização e avaliar experimentalmente o impacto dessas otimizações no desempenho do algoritmo de Kruskal para o cálculo de Árvores Geradoras Mínimas (MST). Dessa forma, busca-se demonstrar na prática como a escolha adequada de estruturas de dados pode transformar a viabilidade de algoritmos fundamentais quando aplicados em larga escala.
+
+
+\section{Fundamentação Teórica}
+
+\subsection{A Estrutura Disjoint Set Union}
+
+A estrutura DSU representa cada conjunto como uma árvore enraizada. Cada elemento possui um ponteiro para seu pai, e a raiz de cada árvore serve como representante do conjunto. Inicialmente, cada elemento é seu próprio pai, formando $n$ conjuntos unitários.
+
+A operação \texttt{Find(x)} percorre a cadeia de ponteiros a partir de $x$ até encontrar a raiz, ou seja, o elemento cuja referência aponta para si mesmo. A operação \texttt{Union(x, y)} localiza as raízes dos conjuntos de $x$ e $y$ e, caso sejam diferentes, faz a raiz de um apontar para a raiz do outro.
+
+\subsection{Implementação Ingênua}
+
+Na versão mais simples, o \texttt{Union} conecta uma raiz à outra sem nenhum critério de escolha. O problema dessa abordagem é que, em sequências adversas de operações, a árvore pode degenerar em uma lista encadeada. Nesse cenário, cada chamada a \texttt{Find} precisa percorrer até $n$ ponteiros, resultando em complexidade $O(n)$ por operação.
+
+\subsection{Union by Rank}
+
+A heurística de \textit{Union by Rank} busca manter as árvores balanceadas. Cada nó mantém um valor de \textit{rank}, que funciona como um limitante superior da altura da subárvore. Na união de dois conjuntos, a raiz com menor \textit{rank} é pendurada sob a raiz com maior \textit{rank}. Quando ambos têm o mesmo \textit{rank}, escolhe-se uma arbitrariamente e incrementa-se seu \textit{rank}.
+
+Essa estratégia garante que a altura de qualquer árvore com $k$ elementos não ultrapasse $\lfloor \log_2 k \rfloor$. Isso ocorre porque, para que uma árvore atinja \textit{rank} $r$, ela precisa ter sido unida com outra árvore de \textit{rank} $r-1$, o que exige ao menos $2^r$ elementos. Portanto, a complexidade do \texttt{Find} fica limitada a $O(\log n)$.
+
+\subsection{Path Compression}
+
+A heurística de \textit{Path Compression} modifica a operação \texttt{Find} para que, ao percorrer o caminho até a raiz, todos os nós visitados passem a apontar diretamente para a raiz. Isso ``achata'' a árvore, fazendo com que consultas futuras sobre os mesmos elementos sejam praticamente instantâneas.
+
+\subsection{A Complexidade $O(\alpha(n))$ de Tarjan}
+
+Quando ambas as heurísticas são combinadas --- \textit{Union by Rank} e \textit{Path Compression} ---, Tarjan demonstrou que qualquer sequência de $m$ operações sobre $n$ elementos tem custo total $O(m \cdot \alpha(n))$, onde $\alpha$ é a inversa da função de Ackermann \cite{tarjan1975}.
+
+A função de Ackermann $A(k, j)$ é definida recursivamente como:
+\begin{align}
+A(1, j) &= 2^j, \quad \text{para } j \geq 1 \\
+A(k, 1) &= A(k-1, 2), \quad \text{para } k \geq 2 \\
+A(k, j) &= A(k-1, A(k, j-1)), \quad \text{para } k \geq 2, j \geq 2
+\end{align}
+
+Essa função cresce de maneira extraordinariamente rápida. Por exemplo, $A(4, 1) = A(3, 2)$ já ultrapassa uma torre de potências de 2 com mais de 65 mil andares. A sua inversa, $\alpha(n) = \min\{k \geq 1 : A(k, 1) \geq n\}$, consequentemente cresce de forma extremamente lenta. Na prática, para qualquer valor de $n$ concebível no universo físico, $\alpha(n) \leq 4$. Isso significa que, embora a complexidade não seja formalmente $O(1)$, ela é \textit{efetivamente constante} para todos os fins práticos.
+
+\subsection{O Algoritmo de Kruskal}
+
+O algoritmo de Kruskal resolve o problema da Árvore Geradora Mínima (MST) para grafos conexos ponderados. Seu funcionamento é direto: ordena todas as arestas do grafo por peso crescente e percorre essa lista, adicionando cada aresta à MST se ela não formar ciclo com as arestas já selecionadas. A detecção de ciclos é feita verificando se os dois vértices da aresta pertencem ao mesmo conjunto, o que é exatamente o que o DSU oferece.
+
+A complexidade total do Kruskal é $O(m \log m)$ para a ordenação das arestas somada ao custo das operações de \texttt{Find} e \texttt{Union}. Com o DSU de Tarjan, essas operações têm custo amortizado $O(\alpha(n))$ cada, totalizando $O(m \cdot \alpha(n))$ para a parte de conjuntos disjuntos, o que na prática não adiciona overhead significativo além da ordenação.
+
+
+\section{Metodologia}
+
+\subsection{Escolhas de Modularização}
+
+O projeto foi desenvolvido em Java e organizado em três pacotes, cada um com responsabilidade bem definida:
+
+\begin{itemize}
+  \item \textbf{Pacote \texttt{dsu}}: Contém uma interface \texttt{DSU} que define o contrato das operações (\texttt{find}, \texttt{union}, \texttt{makeSet}) e um método \texttt{getContador()} para contagem de acessos. As três variantes --- \texttt{DSUNaive}, \texttt{DSURank} e \texttt{DSUTarjan} --- implementam essa interface.
+
+  \item \textbf{Pacote \texttt{grafo}}: Contém a classe \texttt{Aresta} (com atributos \texttt{u}, \texttt{v}, \texttt{peso} e implementação de \texttt{Comparable}) e a classe \texttt{Kruskal}, que recebe qualquer objeto do tipo \texttt{DSU} por polimorfismo.
+
+  \item \textbf{Pacote \texttt{benchmark}}: Contém a classe responsável por gerar grafos aleatórios, executar o Kruskal com cada variante e medir os resultados.
+\end{itemize}
+
+Essa organização facilita a extensibilidade: para testar uma nova variante de DSU, basta criar uma classe que implemente a interface e passá-la ao Kruskal, sem alterar nenhum outro código. Além disso, a separação entre a lógica do grafo e a estrutura de conjuntos disjuntos permite que cada módulo seja testado de forma independente.
+
+\subsection{Implementação das Variantes}
+
+Cada variante do DSU mantém um contador interno que é incrementado a cada acesso ao array \texttt{pai[]}. Essa instrumentação permite comparar objetivamente a quantidade de operações realizadas, independentemente de variações de tempo causadas pelo sistema operacional ou escalonamento de processos.
+
+\begin{itemize}
+  \item \textbf{DSUNaive}: Utiliza apenas o array \texttt{pai[]}. O \texttt{find} percorre a cadeia até a raiz sem modificá-la. O \texttt{union} simplesmente conecta uma raiz à outra.
+
+  \item \textbf{DSURank}: Adiciona o array \texttt{rank[]}. O \texttt{find} permanece sem compressão. O \texttt{union} compara os \textit{ranks} e pendura a árvore menor sob a maior.
+
+  \item \textbf{DSUTarjan}: Combina \texttt{rank[]} com compressão de caminho no \texttt{find}, que é implementado recursivamente --- a cada chamada, o nó visitado passa a apontar diretamente para a raiz retornada.
+\end{itemize}
+
+\subsection{Geração de Grafos de Teste}
+
+Para cada tamanho $n$, foram gerados grafos com $m = 3n$ arestas. A geração garante conectividade construindo primeiro uma árvore geradora (cada vértice $i$ é conectado a um vértice aleatório $j < i$) e então adicionando $m - (n-1)$ arestas extras aleatórias. Os pesos são valores reais uniformemente distribuídos no intervalo $[0, 100)$.
+
+A semente do gerador aleatório foi fixada em 42 para garantir que todas as variantes processem exatamente o mesmo grafo em cada teste, permitindo comparação justa.
+
+\subsection{Cenários de Teste}
+
+Os testes foram realizados para cinco tamanhos de entrada: $n \in \{1.000;\; 5.000;\; 10.000;\; 50.000;\; 100.000\}$. Para cada configuração, o Kruskal foi executado com as três variantes de DSU, medindo-se o tempo de execução via \texttt{System.nanoTime()} e a contagem de acessos ao array de pais.
+
+\subsection{Ambiente de Execução}
+
+Os experimentos foram conduzidos no seguinte ambiente:
+
+\begin{itemize}
+  \item \textbf{Sistema Operacional}: Windows 11 Pro (Build 26200)
+  \item \textbf{Processador}: [PREENCHER - ex: Intel Core i5-12400]
+  \item \textbf{Memória RAM}: [PREENCHER - ex: 16 GB DDR4]
+  \item \textbf{JVM}: Java [PREENCHER - ex: OpenJDK 21.0.1]
+  \item \textbf{Flags de compilação}: Nenhuma flag especial; compilação padrão com \texttt{javac}
+\end{itemize}
+
+
+\section{Discussão de Resultados}
+
+\subsection{Operações de Acesso à Memória}
+
+A Tabela~\ref{tab:operacoes} apresenta a contagem de acessos ao array \texttt{pai[]} para cada variante e tamanho de entrada.
+
+\begin{table}[ht]
+\centering
+\caption{Número de operações de acesso ao array de pais}
+\label{tab:operacoes}
+\begin{tabular}{|r|r|r|r|}
+\hline
+\textbf{n} & \textbf{Naive} & \textbf{Union by Rank} & \textbf{Tarjan} \\
+\hline
+1.000     & 647.373          & 27.377        & 19.897    \\
+5.000     & 21.438.927       & 157.485       & 108.137   \\
+10.000    & 80.819.671       & 324.011       & 216.791   \\
+50.000    & 2.029.460.441    & 1.674.589     & 1.084.927 \\
+100.000   & 8.148.600.321    & 3.257.913     & 2.155.953 \\
+\hline
+\end{tabular}
+\end{table}
+
+Os dados revelam um comportamento consistente com a teoria. A versão ingênua apresenta crescimento claramente superlinear: ao multiplicar $n$ por 10 (de 10.000 para 100.000), o número de operações cresce por um fator superior a 100, o que é compatível com custo $O(n)$ por operação acumulado sobre $O(n)$ arestas, resultando em comportamento quadrático total.
+
+A versão com Union by Rank mostra crescimento significativamente mais contido. O fator de crescimento entre entradas consecutivas se mantém próximo do esperado para $O(\log n)$. Já a versão de Tarjan apresenta os menores valores em todos os cenários, com crescimento ainda mais suave, condizente com $O(\alpha(n))$ amortizado.
+
+A Figura~\ref{fig:ops_todas} ilustra essa disparidade. A curva do Naive domina completamente o gráfico, enquanto as curvas de Rank e Tarjan ficam praticamente sobrepostas ao eixo horizontal na mesma escala.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{grafico_operacoes_todas.png}
+\caption{Comparação do número de operações entre as três variantes.}
+\label{fig:ops_todas}
+\end{figure}
+
+Para visualizar a diferença entre Rank e Tarjan, a Figura~\ref{fig:ops_rank_tarjan} apresenta apenas essas duas curvas. Observa-se que a compressão de caminho reduz consistentemente o número de operações em cerca de 30--35\% em relação ao Union by Rank puro.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{grafico_operacoes_rank_tarjan.png}
+\caption{Comparação de operações entre Union by Rank e Tarjan.}
+\label{fig:ops_rank_tarjan}
+\end{figure}
+
+\subsection{Tempo de Execução}
+
+A Tabela~\ref{tab:tempo} apresenta os tempos de execução medidos.
+
+\begin{table}[ht]
+\centering
+\caption{Tempo de execução em milissegundos}
+\label{tab:tempo}
+\begin{tabular}{|r|r|r|r|}
+\hline
+\textbf{n} & \textbf{Naive (ms)} & \textbf{Rank (ms)} & \textbf{Tarjan (ms)} \\
+\hline
+1.000     & 3,40       & 1,82       & 1,50     \\
+5.000     & 18,11      & 6,62       & 5,26     \\
+10.000    & 54,97      & 6,13       & 6,60     \\
+50.000    & 3.956,49   & 65,14      & 54,59    \\
+100.000   & 46.038,13  & 134,96     & 182,07   \\
+\hline
+\end{tabular}
+\end{table}
+
+O tempo de execução segue a mesma tendência das operações de acesso, embora com maior variância por ser influenciado por fatores externos (JIT, garbage collector, carga do sistema). A versão Naive alcança mais de 46 segundos para 100.000 vértices, enquanto Rank e Tarjan se mantêm abaixo de 200 milissegundos.
+
+A Figura~\ref{fig:tempo_todas} apresenta os tempos de todas as variantes, e a Figura~\ref{fig:tempo_rank_tarjan} faz o comparativo apenas entre Rank e Tarjan.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{grafico_tempo_todas.png}
+\caption{Comparação de tempo de execução entre as três variantes.}
+\label{fig:tempo_todas}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{grafico_tempo_rank_tarjan.png}
+\caption{Comparação de tempo entre Union by Rank e Tarjan.}
+\label{fig:tempo_rank_tarjan}
+\end{figure}
+
+\subsection{Visualização das Classes de Complexidade}
+
+A Figura~\ref{fig:log} utiliza escala logarítmica no eixo vertical para evidenciar a separação entre as três classes de complexidade. Nessa escala, observa-se claramente que as três curvas possuem inclinações distintas, confirmando que não se trata apenas de diferenças por constantes multiplicativas, mas de classes assintóticas genuinamente diferentes.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{grafico_log_operacoes.png}
+\caption{Operações em escala logarítmica --- evidência das classes de complexidade.}
+\label{fig:log}
+\end{figure}
+
+A Figura~\ref{fig:custo_aresta} mostra o custo médio por aresta processada. Para a versão Naive, esse custo cresce linearmente com $n$, confirmando o comportamento $O(n)$ por operação. Para Rank, o crescimento é muito mais lento (logarítmico). Para Tarjan, o custo por aresta permanece praticamente constante, o que é a manifestação prática da complexidade $O(\alpha(n))$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{grafico_custo_por_aresta.png}
+\caption{Custo médio de operações por aresta --- evidência de complexidade amortizada.}
+\label{fig:custo_aresta}
+\end{figure}
+
+
+\section{Conclusão}
+
+Os resultados obtidos neste trabalho demonstram de maneira clara o impacto que a escolha de estruturas de dados tem sobre o desempenho de algoritmos em larga escala. A implementação ingênua do DSU, embora simples e funcional para entradas pequenas, torna-se impraticável conforme o número de elementos cresce, com tempos de execução que ultrapassam dezenas de segundos para grafos com 100 mil vértices.
+
+A heurística de Union by Rank, por si só, já representa uma melhoria expressiva, reduzindo a complexidade por operação de $O(n)$ para $O(\log n)$. Porém, é a combinação com Path Compression que atinge o resultado mais notável: a complexidade amortizada $O(\alpha(n))$ de Tarjan é, para todos os efeitos práticos, constante. Isso foi confirmado empiricamente pelo custo médio por aresta, que permanece estável independentemente do tamanho da entrada.
+
+Esse resultado tem implicações diretas para algoritmos fundamentais como o de Kruskal. Com a estrutura de Tarjan, o gargalo do algoritmo passa a ser exclusivamente a ordenação das arestas ($O(m \log m)$), e não mais as operações de conjuntos disjuntos. Essa é uma demonstração concreta de como avanços teóricos em estruturas de dados se traduzem em ganhos reais de desempenho.
+
+\bibliographystyle{sbc}
+\begin{thebibliography}{9}
+
+\bibitem{tarjan1975}
+Tarjan, R. E. (1975).
+\newblock Efficiency of a Good But Not Linear Set Union Algorithm.
+\newblock {\em Journal of the ACM}, 22(2):215--225.
+
+\bibitem{cormen2009}
+Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. (2009).
+\newblock {\em Introduction to Algorithms}. 3rd edition.
+\newblock MIT Press.
+
+\bibitem{sedgewick2011}
+Sedgewick, R. and Wayne, K. (2011).
+\newblock {\em Algorithms}. 4th edition.
+\newblock Addison-Wesley.
+
+\end{thebibliography}
+
+\end{document}

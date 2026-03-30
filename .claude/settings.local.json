@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(javac -d ../out dsu/*.java grafo/*.java benchmark/*.java Main.java)",
+      "Bash(java Main)",
+      "Bash(java -Xmx512m Main)",
+      "Bash(pip show:*)",
+      "Bash(python gerar_graficos.py)"
+    ]
+  }
+}
