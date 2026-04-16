@@ -17,7 +17,9 @@
       "Bash(echo \"EXIT_PREENCHER:$?\")",
       "Bash(powershell -command 'Select-String -Path artigo.tex -Pattern '\\\\''\\\\\\\\cite\\\\{'\\\\'' | ForEach-Object { [regex]::Matches\\($_.Line, '\\\\''\\\\\\\\cite\\\\{\\([^}]+\\)\\\\}'\\\\''\\) } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique')",
       "Bash(findstr /n \"cite{\" artigo.tex)",
-      "Bash(findstr \"\\\\\\\\\\\\\\\\cite\" artigo.tex)"
+      "Bash(findstr \"\\\\\\\\\\\\\\\\cite\" artigo.tex)",
+      "Bash(python -c \"content = open\\('artigo.tex', encoding='utf-8'\\).read\\(\\); lines = content.split\\('\\\\n'\\); [print\\(f'{i+1}: {l.strip\\(\\)}'\\) for i, l in enumerate\\(lines\\) if '\\\\u2014' in l or '\\\\u2013' in l]\")",
+      "Bash(python -c ':*)"
     ]
   }
 }
