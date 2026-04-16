@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(javac -d ../out dsu/*.java grafo/*.java benchmark/*.java Main.java)",
+      "Bash(java Main)",
+      "Bash(java -Xmx512m Main)",
+      "Bash(pip show:*)",
+      "Bash(python gerar_graficos.py)",
+      "Bash(wmic cpu:*)",
+      "Bash(java -version)",
+      "Bash(javac -version)",
+      "Bash(powershell -command \"Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty Name; \\(Get-WmiObject -Class Win32_ComputerSystem\\).TotalPhysicalMemory / 1GB; Get-WmiObject -Class Win32_PhysicalMemory | Select-Object Capacity, Speed\")",
+      "Bash(javac -d out src/dsu/*.java src/grafo/*.java src/benchmark/*.java src/Main.java)",
+      "Bash(java -cp out Main)",
+      "Bash(grep -oP \"\\\\\\\\\\\\\\\\cite\\\\{[^}]+\\\\}\" artigo.tex)",
+      "Bash(grep -oP \"\\\\\\\\\\\\\\\\bibitem\\\\{[^}]+\\\\}\" artigo.tex)",
+      "Bash(echo \"EXIT_PREENCHER:$?\")",
+      "Bash(powershell -command 'Select-String -Path artigo.tex -Pattern '\\\\''\\\\\\\\cite\\\\{'\\\\'' | ForEach-Object { [regex]::Matches\\($_.Line, '\\\\''\\\\\\\\cite\\\\{\\([^}]+\\)\\\\}'\\\\''\\) } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique')",
+      "Bash(findstr /n \"cite{\" artigo.tex)",
+      "Bash(findstr \"\\\\\\\\\\\\\\\\cite\" artigo.tex)"
+    ]
+  }
+}
