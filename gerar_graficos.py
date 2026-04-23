@@ -1,49 +1,44 @@
+import csv
+import sys
 import matplotlib.pyplot as plt
 import numpy as np
 
-# dados coletados do benchmark com warm-up JIT (seed=42, unica execucao)
-# n, m, variante, tempo_ms, operacoes
-dados_brutos = """
-1000,3000,Naive,1.49,647373
-1000,3000,Union by Rank,1.23,27377
-1000,3000,Tarjan (Rank + Compressao),0.76,19897
-5000,15000,Naive,16.83,21438927
-5000,15000,Union by Rank,2.93,157485
-5000,15000,Tarjan (Rank + Compressao),2.67,108137
-10000,30000,Naive,56.58,80819671
-10000,30000,Union by Rank,5.94,324011
-10000,30000,Tarjan (Rank + Compressao),5.98,216791
-50000,150000,Naive,3320.02,2029460441
-50000,150000,Union by Rank,43.09,1674589
-50000,150000,Tarjan (Rank + Compressao),39.00,1084927
-100000,300000,Naive,14519.67,8148600321
-100000,300000,Union by Rank,89.33,3257913
-100000,300000,Tarjan (Rank + Compressao),84.27,2155953
-"""
+# Uso: python gerar_graficos.py [caminho_csv]
+# Default: benchmark_detalhado.csv na pasta atual
 
-naive_n, naive_tempo, naive_ops = [], [], []
-rank_n, rank_tempo, rank_ops = [], [], []
-tarjan_n, tarjan_tempo, tarjan_ops = [], [], []
+caminho_csv = sys.argv[1] if len(sys.argv) > 1 else "benchmark_detalhado.csv"
 
-for linha in dados_brutos.strip().split("\n"):
-    partes = linha.split(",")
-    n = int(partes[0])
-    tempo = float(partes[3])
-    ops = int(partes[4])
-    variante = partes[2]
+dados = {"Naive": {}, "Union by Rank": {}, "Tarjan (Rank + Compressao)": {}}
 
-    if variante == "Naive":
-        naive_n.append(n)
-        naive_tempo.append(tempo)
-        naive_ops.append(ops)
-    elif variante == "Union by Rank":
-        rank_n.append(n)
-        rank_tempo.append(tempo)
-        rank_ops.append(ops)
-    else:
-        tarjan_n.append(n)
-        tarjan_tempo.append(tempo)
-        tarjan_ops.append(ops)
+with open(caminho_csv, newline="", encoding="utf-8") as f:
+    leitor = csv.DictReader(f)
+    for linha in leitor:
+        variante = linha["variante"]
+        n = int(linha["n"])
+        dados[variante][n] = {
+            "tempo_medio": float(linha["tempo_medio"]),
+            "tempo_std":   float(linha["tempo_std"]),
+            "ops_media":   float(linha["ops_media"]),
+            "ops_std":     float(linha["ops_std"]),
+        }
+
+def extrair(variante, campo):
+    itens = sorted(dados[variante].items())
+    ns = [n for n, _ in itens]
+    vals = [r[campo] for _, r in itens]
+    return ns, vals
+
+naive_n,  naive_tempo    = extrair("Naive", "tempo_medio")
+_,        naive_tempo_s  = extrair("Naive", "tempo_std")
+_,        naive_ops      = extrair("Naive", "ops_media")
+
+rank_n,   rank_tempo     = extrair("Union by Rank", "tempo_medio")
+_,        rank_tempo_s   = extrair("Union by Rank", "tempo_std")
+_,        rank_ops       = extrair("Union by Rank", "ops_media")
+
+tarjan_n, tarjan_tempo   = extrair("Tarjan (Rank + Compressao)", "tempo_medio")
+_,        tarjan_tempo_s = extrair("Tarjan (Rank + Compressao)", "tempo_std")
+_,        tarjan_ops     = extrair("Tarjan (Rank + Compressao)", "ops_media")
 
 plt.rcParams['figure.figsize'] = (10, 6)
 plt.rcParams['font.size'] = 11
@@ -87,12 +82,15 @@ plt.close()
 print("Salvo: grafico_operacoes_rank_tarjan.png")
 
 # ============================================
-# GRAFICO 3 - Tempo de execucao (todas)
+# GRAFICO 3 - Tempo de execucao (todas, com barras de erro)
 # ============================================
 fig, ax = plt.subplots()
-ax.plot(naive_n, naive_tempo, 'ro-', label='Naive', linewidth=2, markersize=7)
-ax.plot(rank_n, rank_tempo, 'bs-', label='Union by Rank', linewidth=2, markersize=7)
-ax.plot(tarjan_n, tarjan_tempo, 'g^-', label='Tarjan (Rank + Compressão)', linewidth=2, markersize=7)
+ax.errorbar(naive_n,  naive_tempo,  yerr=naive_tempo_s,
+            fmt='ro-', label='Naive', linewidth=2, markersize=7, capsize=4)
+ax.errorbar(rank_n,   rank_tempo,   yerr=rank_tempo_s,
+            fmt='bs-', label='Union by Rank', linewidth=2, markersize=7, capsize=4)
+ax.errorbar(tarjan_n, tarjan_tempo, yerr=tarjan_tempo_s,
+            fmt='g^-', label='Tarjan (Rank + Compressão)', linewidth=2, markersize=7, capsize=4)
 
 ax.set_xlabel('Número de vértices (n)')
 ax.set_ylabel('Tempo de execução (ms)')
@@ -106,11 +104,13 @@ plt.close()
 print("Salvo: grafico_tempo_todas.png")
 
 # ============================================
-# GRAFICO 4 - Tempo (so Rank e Tarjan)
+# GRAFICO 4 - Tempo (so Rank e Tarjan, com barras de erro)
 # ============================================
 fig, ax = plt.subplots()
-ax.plot(rank_n, rank_tempo, 'bs-', label='Union by Rank', linewidth=2, markersize=7)
-ax.plot(tarjan_n, tarjan_tempo, 'g^-', label='Tarjan (Rank + Compressão)', linewidth=2, markersize=7)
+ax.errorbar(rank_n,   rank_tempo,   yerr=rank_tempo_s,
+            fmt='bs-', label='Union by Rank', linewidth=2, markersize=7, capsize=4)
+ax.errorbar(tarjan_n, tarjan_tempo, yerr=tarjan_tempo_s,
+            fmt='g^-', label='Tarjan (Rank + Compressão)', linewidth=2, markersize=7, capsize=4)
 
 ax.set_xlabel('Número de vértices (n)')
 ax.set_ylabel('Tempo de execução (ms)')
