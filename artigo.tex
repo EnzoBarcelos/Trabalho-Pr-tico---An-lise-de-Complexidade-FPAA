@@ -22,11 +22,11 @@
 \maketitle
 
 \begin{resumo}
-  Este trabalho analisa experimentalmente três variantes da estrutura Disjoint Set Union (DSU) aplicadas ao algoritmo de Kruskal para o cálculo de Árvores Geradoras Mínimas: a implementação Ingênua, Union by Rank e a versão completa de Tarjan (Union by Rank com Path Compression). Os experimentos foram realizados em grafos conexos aleatórios com $n$ entre $10^3$ e $10^5$ vértices e $m = 3n$ arestas, medindo tempo de execução e número de acessos ao array de pais. Os resultados evidenciam na prática a transição entre as classes $O(n)$, $O(\log n)$ e $O(\alpha(n))$: a versão Ingênua ultrapassa $8 \times 10^9$ acessos e quase 14,5 segundos em $n = 10^5$, enquanto Tarjan mantém o custo médio por aresta essencialmente constante, com redução de mais de três ordens de grandeza. Com a estrutura de Tarjan, o custo do DSU deixa de influenciar o tempo total do Kruskal, que passa a ser dominado pela ordenação das arestas.
+  Este trabalho analisa experimentalmente três variantes da estrutura Disjoint Set Union (DSU) aplicadas ao algoritmo de Kruskal para o cálculo de Árvores Geradoras Mínimas: a implementação Ingênua, Union by Rank e a versão completa de Tarjan (Union by Rank com Path Compression). Os experimentos foram realizados em grafos conexos aleatórios com $n$ entre $10^3$ e $10^5$ vértices e $m = 3n$ arestas, medindo tempo de execução e número de acessos ao array de pais. As medições reportadas são médias sobre cinco grafos distintos por configuração, acompanhadas do desvio padrão amostral nos tempos. Os resultados evidenciam na prática a transição entre as classes $O(n)$, $O(\log n)$ e $O(\alpha(n))$: a versão Ingênua ultrapassa $8 \times 10^9$ acessos e aproximadamente 16 segundos em $n = 10^5$, enquanto Tarjan mantém o custo médio por aresta essencialmente constante, com redução de mais de três ordens de grandeza. Com a estrutura de Tarjan, o custo do DSU deixa de influenciar o tempo total do Kruskal, que passa a ser dominado pela ordenação das arestas.
 \end{resumo}
 
 \begin{abstract}
-  This paper presents an experimental analysis of three Disjoint Set Union (DSU) variants applied to Kruskal's Minimum Spanning Tree algorithm: Naive, Union by Rank, and Full Tarjan (Union by Rank combined with Path Compression). Experiments were conducted on randomly generated connected graphs with $n$ ranging from $10^3$ to $10^5$ vertices and $m = 3n$ edges, measuring both execution time and array-access counts. Results show a clear practical transition across complexity classes $O(n)$, $O(\log n)$, and $O(\alpha(n))$: the Naive implementation reaches over $8 \times 10^9$ accesses and nearly 14.5 seconds at $n = 10^5$, while Tarjan keeps the per-edge cost essentially constant, reducing accesses by more than three orders of magnitude. Under Tarjan's structure, the dominant cost in Kruskal shifts entirely to edge sorting, confirming that the DSU overhead becomes negligible in practice.
+  This paper presents an experimental analysis of three Disjoint Set Union (DSU) variants applied to Kruskal's Minimum Spanning Tree algorithm: Naive, Union by Rank, and Full Tarjan (Union by Rank combined with Path Compression). Experiments were conducted on randomly generated connected graphs with $n$ ranging from $10^3$ to $10^5$ vertices and $m = 3n$ edges, measuring both execution time and array-access counts. Each data point is the mean over five distinct graphs, with sample standard deviation reported for timings. Results show a clear practical transition across complexity classes $O(n)$, $O(\log n)$, and $O(\alpha(n))$: the Naive implementation reaches over $8 \times 10^9$ accesses and around 16 seconds at $n = 10^5$, while Tarjan keeps the per-edge cost essentially constant, reducing accesses by more than three orders of magnitude. Under Tarjan's structure, the dominant cost in Kruskal shifts entirely to edge sorting, confirming that the DSU overhead becomes negligible in practice.
 \end{abstract}
 
 \noindent\textbf{Palavras-chave:} Union-Find; Disjoint Set Union; Algoritmo de Kruskal; Path Compression; Complexidade Amortizada; Função Inversa de Ackermann.
@@ -34,7 +34,7 @@
 
 \section{Introdução}
 
-O problema de gerenciar conjuntos disjuntos aparece em diversos contextos da computação. Seja no processamento de imagens, onde pixels vizinhos precisam ser agrupados em regiões, ou em redes de computadores, onde é preciso verificar se dois nós pertencem à mesma componente conectada, a necessidade de manter e consultar partições de elementos é recorrente.
+Gerenciar conjuntos disjuntos é um problema recorrente em computação. Aparece no processamento de imagens, quando pixels vizinhos precisam ser agrupados em regiões. Aparece em redes, quando se quer saber se dois nós pertencem à mesma componente conectada. E aparece, talvez da forma mais explícita, em algoritmos de grafos que testam conectividade dinamicamente.
 
 A estrutura de dados conhecida como \textit{Disjoint Set Union} (DSU), ou simplesmente \textit{Union-Find}, foi projetada para resolver esse problema de forma eficiente. Ela mantém uma coleção de conjuntos disjuntos e oferece duas operações fundamentais: \texttt{Find}, que identifica a qual conjunto um elemento pertence, e \texttt{Union}, que funde dois conjuntos em um só.
 
@@ -87,7 +87,7 @@ A(k, 1) &= A(k-1, 2), \quad \text{para } k \geq 2 \\
 A(k, j) &= A(k-1, A(k, j-1)), \quad \text{para } k \geq 2, j \geq 2
 \end{align}
 
-Essa função cresce de forma super-exponencial. $A(4, 1)$, por exemplo, supera uma torre de potências de 2 com $2^{16} = 65.536$ andares. A sua inversa, $\alpha(n) = \min\{k \geq 1 : A(k, 1) \geq n\}$, cresce de forma correspondentemente lenta: para qualquer valor de $n$ concebível no universo físico, $\alpha(n) \leq 4$ \cite{cormen2009}. Embora a complexidade não seja formalmente $O(1)$, é \textit{efetivamente constante} para todos os fins práticos.
+Essa função cresce de forma super-exponencial. $A(4, 1)$, por exemplo, supera uma torre de potências de 2 com $2^{16} = 65.536$ andares. Sua inversa $\alpha(n) = \min\{k \geq 1 : A(k, 1) \geq n\}$ cresce com a mesma lentidão, agora para o lado oposto. Para qualquer $n$ imaginável no universo físico, $\alpha(n) \leq 4$ \cite{cormen2009}. Formalmente a complexidade não é $O(1)$; na prática, é constante.
 
 A Tabela~\ref{tab:alpha} ilustra essa propriedade com valores concretos.
 
@@ -129,7 +129,7 @@ O projeto foi desenvolvido em Java e organizado em três pacotes, cada um com re
   \item \textbf{Pacote \texttt{benchmark}}: Contém a classe responsável por gerar grafos aleatórios, executar o Kruskal com cada variante e medir os resultados.
 \end{itemize}
 
-Essa organização facilita a extensibilidade: para testar uma nova variante de DSU, basta criar uma classe que implemente a interface e passá-la ao Kruskal, sem alterar nenhum outro código. Além disso, a separação entre a lógica do grafo e a estrutura de conjuntos disjuntos permite que cada módulo seja testado de forma independente.
+A vantagem dessa divisão é prática: uma nova variante de DSU entra no experimento criando-se uma classe que implemente a interface e passando-a ao Kruskal. Nenhum outro arquivo precisa mudar. Como consequência secundária, grafo e DSU podem ser testados em isolamento.
 
 \subsection{Implementação das Variantes}
 
@@ -145,13 +145,13 @@ Cada variante do DSU mantém um contador interno que registra o total de acessos
 
 \subsection{Validação de Correção}
 
-Antes dos experimentos de desempenho, verificou-se que as três variantes produzem exatamente o mesmo peso total de MST para cada grafo de teste. Essa verificação é realizada pelo método \texttt{Main.exemploKruskal()}, que compara os resultados das três implementações num grafo de 6 vértices com solução conhecida. A consistência dos pesos confirma que as otimizações não alteram a correção do algoritmo.
+Antes dos experimentos de desempenho, verificou-se que as três variantes produzem exatamente o mesmo peso total de MST para cada grafo de teste. O método \texttt{Main.exemploKruskal()} executa essa verificação num grafo de 6 vértices com solução conhecida e lança \texttt{AssertionError} caso qualquer variante divirja das demais (tolerância de $10^{-9}$). A consistência dos pesos confirma que as otimizações não alteram a correção do algoritmo.
 
 \subsection{Geração de Grafos de Teste}
 
 Para cada tamanho $n$, foram gerados grafos com $m = 3n$ arestas. A geração garante conectividade construindo primeiro uma árvore geradora (cada vértice $i$ é conectado a um vértice aleatório $j < i$) e então adicionando $m - (n-1)$ arestas extras aleatórias. Os pesos são valores reais uniformemente distribuídos no intervalo $[0, 100)$.
 
-A semente do gerador aleatório foi fixada em 42 para que todas as variantes processem exatamente o mesmo grafo, garantindo comparação justa das operações. A ordenação das arestas é feita por \texttt{Collections.sort()}, que usa o algoritmo Timsort com complexidade $O(m \log m)$.
+Em cada configuração foram usadas cinco seeds fixas (de 42 a 46), gerando cinco grafos distintos. Dentro de um mesmo grafo, as três variantes processam exatamente a mesma sequência de arestas, de modo que a comparação de contagens e tempos é sempre feita sobre dados idênticos. A ordenação das arestas é feita por \texttt{Collections.sort()}, que usa o algoritmo Timsort com complexidade $O(m \log m)$.
 
 Algumas limitações do gerador merecem registro: self-loops ($u = v$) são descartados sem reposição, de modo que o número efetivo de arestas pode ser levemente inferior a $3n$; arestas duplicadas são permitidas; e a topologia do grafo é enviesada para o padrão ``árvore-caminho com arestas extras'', não representando a distribuição uniforme de um grafo de Erd\H{o}s--R\'enyi.
 
