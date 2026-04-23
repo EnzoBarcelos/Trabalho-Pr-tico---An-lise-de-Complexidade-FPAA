@@ -157,7 +157,7 @@ Algumas limitações do gerador merecem registro: self-loops ($u = v$) são desc
 
 \subsection{Cenários de Teste}
 
-Os testes foram realizados para cinco tamanhos de entrada: $n \in \{1.000;\; 5.000;\; 10.000;\; 50.000;\; 100.000\}$. Para cada configuração, o Kruskal foi executado com as três variantes de DSU, medindo-se o tempo de execução via \texttt{System.nanoTime()} e a contagem de acessos ao array de pais.
+Os testes foram realizados para cinco tamanhos de entrada: $n \in \{1.000;\; 5.000;\; 10.000;\; 50.000;\; 100.000\}$. Para cada configuração, o Kruskal foi executado com as três variantes de DSU em cinco grafos distintos, gerados com as seeds $42$, $43$, $44$, $45$ e $46$. Em cada execução foram medidos o tempo via \texttt{System.nanoTime()} e a contagem de acessos ao array de pais. Os valores reportados nas tabelas são a média das cinco repetições; para os tempos, também se reporta o desvio padrão amostral.
 
 \subsection{Ambiente de Execução}
 
@@ -171,7 +171,7 @@ Os experimentos foram conduzidos no seguinte ambiente:
   \item \textbf{Compilador}: \texttt{javac 24}; sem flags de otimização adicionais
 \end{itemize}
 
-Antes de cada rodada de medição, uma fase de \textit{warm-up} executa as três variantes em um grafo auxiliar de $n = 5.000$ vértices (descartado). Isso permite que o compilador JIT compile os caminhos quentes antes das medições oficiais, reduzindo o impacto da compilação em tempo de execução nos tempos registrados. Cada ponto das tabelas corresponde a uma única execução com semente fixa 42; os contadores de acesso, por serem determinísticos, não são afetados por variância de execução.
+Antes de cada rodada de medição, uma fase de \textit{warm-up} executa as três variantes em um grafo auxiliar de $n = 5.000$ vértices (descartado). Isso permite que o compilador JIT compile os caminhos quentes antes das medições oficiais, reduzindo o impacto da compilação em tempo de execução nos tempos registrados. Cada ponto das tabelas é a média de cinco execuções em grafos diferentes, cujas seeds de geração vão de $42$ a $46$. O desvio padrão reportado para os tempos usa o estimador amostral, com $n-1$ no denominador.
 
 
 \section{Discussão de Resultados}
@@ -316,7 +316,7 @@ Quanto à segunda questão --- o ganho marginal de acrescentar Path Compression 
 
 \subsection*{Limitações}
 
-Os tempos medidos correspondem a execuções únicas com semente fixa; variância amostral não foi estimada. Além disso, a topologia dos grafos gerados (árvore-caminho com arestas extras) não representa a distribuição uniforme de um grafo aleatório, o que pode influenciar a profundidade média das árvores DSU. Os resultados devem ser interpretados como evidência de tendências assintóticas, não como medidas de desempenho absolutas.
+A topologia dos grafos gerados (árvore-caminho com arestas extras) não corresponde à distribuição uniforme de um grafo de Erd\H{o}s--R\'enyi, o que pode influenciar a profundidade média das árvores DSU. O intervalo de $n$ investigado vai até $10^5$; extrapolações para escalas maiores assumem que o regime assintótico já foi atingido no domínio medido. Os resultados devem ser lidos como evidência de tendências de complexidade, não como benchmarks absolutos de desempenho.
 
 \subsection*{Trabalhos Futuros}
 
