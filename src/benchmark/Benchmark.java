@@ -3,6 +3,9 @@ package benchmark;
 import dsu.*;
 import grafo.Aresta;
 import grafo.Kruskal;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -57,6 +60,7 @@ public class Benchmark {
     }
 
     // versao com media de 5 execucoes em grafos diferentes (seeds distintas)
+    // agora tambem calcula desvio padrao amostral e grava CSV pro Python consumir
     public static void executarDetalhado() {
         System.out.println("=== BENCHMARK DETALHADO (media de 5 execucoes, seeds distintas) ===");
         System.out.println();
@@ -70,9 +74,12 @@ public class Benchmark {
 
         long[] seeds = {42L, 43L, 44L, 45L, 46L};
 
-        System.out.printf("%-10s %-8s %-30s %-15s %-15s%n",
-                "n", "m", "Variante", "Tempo_medio(ms)", "Ops_medias");
-        System.out.println("-".repeat(80));
+        System.out.printf("%-10s %-8s %-30s %-22s %-25s%n",
+                "n", "m", "Variante", "Tempo (ms)", "Ops");
+        System.out.println("-".repeat(100));
+
+        List<String> linhasCsv = new ArrayList<>();
+        linhasCsv.add("n,m,variante,tempo_medio,tempo_std,ops_media,ops_std");
 
         for (int n : TAMANHOS) {
             int m = n * 3;
@@ -80,30 +87,63 @@ public class Benchmark {
             DSU[] variantes = { new DSUNaive(), new DSURank(), new DSUTarjan() };
 
             for (DSU dsu : variantes) {
-                double somaTempos = 0;
-                long somaOps = 0;
+                double[] tempos = new double[seeds.length];
+                double[] ops = new double[seeds.length];
 
-                for (long seed : seeds) {
+                for (int i = 0; i < seeds.length; i++) {
                     // grafo diferente a cada repeticao (seed distinta)
-                    List<Aresta> arestas = gerarGrafoAleatorio(n, m, seed);
+                    List<Aresta> arestas = gerarGrafoAleatorio(n, m, seeds[i]);
                     dsu.resetContador();
 
                     long inicio = System.nanoTime();
                     Kruskal.executar(n, arestas, dsu);
                     long fim = System.nanoTime();
 
-                    somaTempos += (fim - inicio) / 1_000_000.0;
-                    somaOps += dsu.getContador();
+                    tempos[i] = (fim - inicio) / 1_000_000.0;
+                    ops[i] = dsu.getContador();
                 }
 
-                double mediaTempos = somaTempos / seeds.length;
-                long mediaOps = somaOps / seeds.length;
+                double tempoMedio = media(tempos);
+                double tempoStd = desvioPadrao(tempos, tempoMedio);
+                double opsMedia = media(ops);
+                double opsStd = desvioPadrao(ops, opsMedia);
 
-                System.out.printf(Locale.US, "%-10d %-8d %-30s %-15.2f %-15d%n",
-                        n, m, dsu.getNome(), mediaTempos, mediaOps);
+                System.out.printf(Locale.US,
+                        "%-10d %-8d %-30s %8.2f +/- %-8.2f  %14.0f +/- %-10.0f%n",
+                        n, m, dsu.getNome(), tempoMedio, tempoStd, opsMedia, opsStd);
+
+                linhasCsv.add(String.format(Locale.US, "%d,%d,%s,%.4f,%.4f,%.2f,%.2f",
+                        n, m, dsu.getNome(), tempoMedio, tempoStd, opsMedia, opsStd));
             }
             System.out.println();
         }
+
+        // grava o CSV na raiz do projeto pro gerar_graficos.py consumir
+        try (PrintWriter csv = new PrintWriter(new FileWriter("benchmark_detalhado.csv"))) {
+            for (String linha : linhasCsv) csv.println(linha);
+        } catch (IOException e) {
+            System.err.println("Falha ao gravar CSV: " + e.getMessage());
+            return;
+        }
+        System.out.println("CSV gravado em benchmark_detalhado.csv (" + (linhasCsv.size() - 1) + " linhas)");
+    }
+
+    // media simples (aritmetica)
+    private static double media(double[] valores) {
+        double s = 0;
+        for (double v : valores) s += v;
+        return s / valores.length;
+    }
+
+    // desvio padrao amostral (divide por n-1)
+    private static double desvioPadrao(double[] valores, double media) {
+        if (valores.length < 2) return 0.0;
+        double soma = 0;
+        for (double v : valores) {
+            double d = v - media;
+            soma += d * d;
+        }
+        return Math.sqrt(soma / (valores.length - 1));
     }
 
     // gera grafo conexo aleatorio com seed configuravel
