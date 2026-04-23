@@ -183,17 +183,17 @@ A Tabela~\ref{tab:operacoes} apresenta a contagem de acessos ao array \texttt{pa
 
 \begin{table}[!ht]
 \centering
-\caption{Número de operações de acesso ao array de pais}
+\caption{Número médio de operações de acesso ao array de pais (média sobre 5 seeds)}
 \label{tab:operacoes}
 \begin{tabular}{|r|r|r|r|}
 \hline
 \textbf{n} & \textbf{Naive} & \textbf{Union by Rank} & \textbf{Tarjan} \\
 \hline
-1.000      & 647.373           & 27.377        & 19.897    \\
-5.000      & 21.438.927        & 157.485       & 108.137   \\
-10.000     & 80.819.671        & 324.011       & 216.791   \\
-50.000     & 2.029.460.441     & 1.674.589     & 1.084.927 \\
-100.000    & 8.148.600.321     & 3.257.913     & 2.155.953 \\
+1.000      & 791.283           & 29.540        & 20.682    \\
+5.000      & 20.144.948        & 154.647       & 106.589   \\
+10.000     & 80.860.069        & 321.354       & 215.950   \\
+50.000     & 2.040.461.352     & 1.629.513     & 1.079.521 \\
+100.000    & 8.199.815.162     & 3.283.355     & 2.166.669 \\
 \hline
 \end{tabular}
 \end{table}
@@ -224,17 +224,17 @@ A Tabela~\ref{tab:tempo} apresenta os tempos de execução medidos.
 
 \begin{table}[!ht]
 \centering
-\caption{Tempo de execução em milissegundos}
+\caption{Tempo de execução em milissegundos (média $\pm$ desvio padrão amostral sobre 5 seeds)}
 \label{tab:tempo}
 \begin{tabular}{|r|r|r|r|}
 \hline
 \textbf{n} & \textbf{Naive (ms)} & \textbf{Rank (ms)} & \textbf{Tarjan (ms)} \\
 \hline
-1.000      & 1,49       & 1,23       & 0,76    \\
-5.000      & 16,83      & 2,93       & 2,67    \\
-10.000     & 56,58      & 5,94       & 5,98    \\
-50.000     & 3.320,02   & 43,09      & 39,00   \\
-100.000    & 14.519,67  & 89,33      & 84,27   \\
+1.000      & 1,28 $\pm$ 0,07        & 0,68 $\pm$ 0,11      & 0,58 $\pm$ 0,04    \\
+5.000      & 13,94 $\pm$ 0,64       & 2,59 $\pm$ 0,10      & 2,39 $\pm$ 0,08    \\
+10.000     & 50,92 $\pm$ 1,16       & 5,47 $\pm$ 0,14      & 5,04 $\pm$ 0,18    \\
+50.000     & 3.392,31 $\pm$ 127,89  & 31,36 $\pm$ 2,59     & 29,07 $\pm$ 0,52   \\
+100.000    & 16.235,40 $\pm$ 1.662,05 & 68,60 $\pm$ 2,73   & 63,17 $\pm$ 1,19   \\
 \hline
 \end{tabular}
 \end{table}
@@ -265,16 +265,16 @@ Para quantificar as classes de complexidade observadas experimentalmente, calcul
 
 \begin{table}[!ht]
 \centering
-\caption{Expoente empírico de crescimento das operações entre pares consecutivos de $n$}
+\caption{Expoente empírico de crescimento das operações entre pares consecutivos de $n$ (médias sobre 5 seeds)}
 \label{tab:expoente}
 \begin{tabular}{|c|c|c|c|}
 \hline
 \textbf{Transição} & \textbf{Naive ($p$)} & \textbf{Rank ($p$)} & \textbf{Tarjan ($p$)} \\
 \hline
-$10^3 \to 5\cdot 10^3$     & 2,17 & 1,06 & 1,05 \\
-$5\cdot 10^3 \to 10^4$     & 1,91 & 1,04 & 1,00 \\
-$10^4 \to 5\cdot 10^4$     & 2,04 & 1,02 & 1,00 \\
-$5\cdot 10^4 \to 10^5$     & 2,01 & 0,96 & 0,99 \\
+$10^3 \to 5\cdot 10^3$     & 2,01 & 1,03 & 1,02 \\
+$5\cdot 10^3 \to 10^4$     & 2,01 & 1,06 & 1,02 \\
+$10^4 \to 5\cdot 10^4$     & 2,01 & 1,01 & 1,00 \\
+$5\cdot 10^4 \to 10^5$     & 2,01 & 1,01 & 1,00 \\
 \hline
 \end{tabular}
 \end{table}
