@@ -19,7 +19,19 @@
       "Bash(findstr /n \"cite{\" artigo.tex)",
       "Bash(findstr \"\\\\\\\\\\\\\\\\cite\" artigo.tex)",
       "Bash(python -c \"content = open\\('artigo.tex', encoding='utf-8'\\).read\\(\\); lines = content.split\\('\\\\n'\\); [print\\(f'{i+1}: {l.strip\\(\\)}'\\) for i, l in enumerate\\(lines\\) if '\\\\u2014' in l or '\\\\u2013' in l]\")",
-      "Bash(python -c ':*)"
+      "Bash(python -c ':*)",
+      "Bash(java --version)",
+      "Bash(javac --version)",
+      "Bash(python *)",
+      "Bash(git -C \"C:/Users/Enzo Barcelos/Desktop/Trabalho-Pr-tico---An-lise-de-Complexidade-FPAA-master/\" add docs/superpowers/specs/2026-04-23-melhorias-trabalho-fpaa-design.md)",
+      "Bash(git -C \"C:/Users/Enzo Barcelos/Desktop/Trabalho-Pr-tico---An-lise-de-Complexidade-FPAA-master/\" commit -m \"docs: spec das melhorias tier B \\(validação + variância + humanização\\)\")",
+      "Bash(git -C \"C:/Users/Enzo Barcelos/Desktop/Trabalho-Pr-tico---An-lise-de-Complexidade-FPAA-master/\" log --oneline -3)",
+      "Bash(git -C \"C:/Users/Enzo Barcelos/Desktop/Trabalho-Pr-tico---An-lise-de-Complexidade-FPAA-master/\" ls-files)",
+      "Bash(git -C \"C:/Users/Enzo Barcelos/Desktop/Trabalho-Pr-tico---An-lise-de-Complexidade-FPAA-master/\" add docs/superpowers/plans/2026-04-23-melhorias-trabalho-fpaa.md)",
+      "Bash(git -C \"C:/Users/Enzo Barcelos/Desktop/Trabalho-Pr-tico---An-lise-de-Complexidade-FPAA-master/\" commit -m \"docs: plano de execucao tier B \\(8 tasks com passos detalhados\\)\")",
+      "Bash(javac -d out src/Main.java src/dsu/*.java src/grafo/*.java src/benchmark/*.java)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
