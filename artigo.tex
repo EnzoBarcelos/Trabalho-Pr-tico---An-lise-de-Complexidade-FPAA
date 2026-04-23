@@ -38,7 +38,7 @@ O problema de gerenciar conjuntos disjuntos aparece em diversos contextos da com
 
 A estrutura de dados conhecida como \textit{Disjoint Set Union} (DSU), ou simplesmente \textit{Union-Find}, foi projetada para resolver esse problema de forma eficiente. Ela mantém uma coleção de conjuntos disjuntos e oferece duas operações fundamentais: \texttt{Find}, que identifica a qual conjunto um elemento pertence, e \texttt{Union}, que funde dois conjuntos em um só.
 
-Uma implementação simples dessa estrutura, utilizando árvores sem nenhum critério de balanceamento, pode levar a cadeias longas de ponteiros, degradando o desempenho das operações para $O(n)$ no pior caso. Robert Tarjan propôs duas heurísticas que, quando combinadas, reduzem a complexidade amortizada para $O(\alpha(n))$, onde $\alpha$ é a inversa da função de Ackermann --- uma função que cresce tão lentamente que, para qualquer valor prático de $n$, seu resultado não ultrapassa 4 \cite{tarjan1975}.
+Uma implementação simples dessa estrutura, utilizando árvores sem nenhum critério de balanceamento, pode levar a cadeias longas de ponteiros, degradando o desempenho das operações para $O(n)$ no pior caso. Robert Tarjan propôs duas heurísticas que, quando combinadas, reduzem a complexidade amortizada para $O(\alpha(n))$, onde $\alpha$ é a inversa da função de Ackermann. Essa função cresce tão lentamente que, para qualquer valor prático de $n$, seu resultado não ultrapassa 4 \cite{tarjan1975}.
 
 O presente trabalho implementa três variantes do DSU com níveis crescentes de otimização e avalia experimentalmente o impacto no desempenho do algoritmo de Kruskal para Árvores Geradoras Mínimas (MST). Duas questões orientam a análise: (i) a partir de qual escala a implementação ingênua deixa de ser viável em aplicações reais de MST? e (ii) qual o ganho marginal efetivo da combinação de Union by Rank com Path Compression em relação ao uso isolado de Union by Rank?
 
@@ -76,7 +76,7 @@ Usada isoladamente, sem Union by Rank, Path Compression garante complexidade amo
 
 Para entender por que a combinação de Union by Rank e Path Compression produz complexidade amortizada $O(\alpha(n))$, é preciso distinguir custo real de custo amortizado. A análise amortizada distribui o custo total de uma sequência de operações uniformemente entre elas: mesmo que uma operação individual seja cara, o custo médio por operação ao longo da sequência pode ser muito menor.
 
-Tarjan provou esse resultado usando o \textit{método do potencial} \cite{tarjan1985}: associa-se a cada nó uma função de potencial que depende do seu rank e de sua posição na árvore. Operações de \texttt{Find} que percorrem caminhos longos reduzem o potencial ao comprimir nós, de modo que seu custo real alto é compensado por uma queda equivalente no potencial. O custo amortizado por operação --- custo real mais variação de potencial --- fica limitado a $O(\alpha(n))$.
+Tarjan provou esse resultado usando o \textit{método do potencial} \cite{tarjan1985}: associa-se a cada nó uma função de potencial que depende do seu rank e de sua posição na árvore. Operações de \texttt{Find} que percorrem caminhos longos reduzem o potencial ao comprimir nós, de modo que seu custo real alto é compensado por uma queda equivalente no potencial. O custo amortizado por operação (custo real somado à variação de potencial) fica limitado a $O(\alpha(n))$.
 
 O resultado formal é o seguinte: qualquer sequência de $m$ operações sobre $n$ elementos tem custo total $O((m + n) \cdot \alpha(n))$, onde $\alpha$ é a inversa da função de Ackermann \cite{tarjan1975,tarjan1984}.
 
@@ -122,7 +122,7 @@ A complexidade total do Kruskal é $O(m \log m)$ para a ordenação das arestas 
 O projeto foi desenvolvido em Java e organizado em três pacotes, cada um com responsabilidade bem definida:
 
 \begin{itemize}
-  \item \textbf{Pacote \texttt{dsu}}: Contém uma interface \texttt{DSU} que define o contrato das operações (\texttt{find}, \texttt{union}, \texttt{makeSet}) e um método \texttt{getContador()} para contagem de acessos. As três variantes --- \texttt{DSUNaive}, \texttt{DSURank} e \texttt{DSUTarjan} --- implementam essa interface.
+  \item \textbf{Pacote \texttt{dsu}}: Contém uma interface \texttt{DSU} que define o contrato das operações (\texttt{find}, \texttt{union}, \texttt{makeSet}) e um método \texttt{getContador()} para contagem de acessos. As três variantes (\texttt{DSUNaive}, \texttt{DSURank} e \texttt{DSUTarjan}) implementam essa interface.
 
   \item \textbf{Pacote \texttt{grafo}}: Contém a classe \texttt{Aresta} (com atributos \texttt{u}, \texttt{v}, \texttt{peso} e implementação de \texttt{Comparable}) e a classe \texttt{Kruskal}, que recebe qualquer objeto do tipo \texttt{DSU} por polimorfismo.
 
@@ -140,7 +140,7 @@ Cada variante do DSU mantém um contador interno que registra o total de acessos
 
   \item \textbf{DSURank}: Adiciona o array \texttt{rank[]}. O \texttt{find} permanece sem compressão. O \texttt{union} compara os \textit{ranks} e pendura a árvore menor sob a maior.
 
-  \item \textbf{DSUTarjan}: Combina \texttt{rank[]} com compressão de caminho no \texttt{find}, implementado recursivamente --- cada chamada faz o nó visitado apontar diretamente para a raiz retornada.
+  \item \textbf{DSUTarjan}: Combina \texttt{rank[]} com compressão de caminho no \texttt{find}. A implementação é recursiva: cada chamada faz o nó visitado apontar diretamente para a raiz retornada.
 \end{itemize}
 
 \subsection{Validação de Correção}
@@ -198,9 +198,9 @@ A Tabela~\ref{tab:operacoes} apresenta a contagem de acessos ao array \texttt{pa
 \end{tabular}
 \end{table}
 
-Os dados revelam um comportamento consistente com a teoria. A versão ingênua apresenta crescimento claramente superlinear: multiplicando $n$ por 10 (de 10.000 para 100.000), o número de acessos cresce por um fator de aproximadamente 101, o que é compatível com comportamento quadrático total --- custo $O(n)$ por operação acumulado sobre $m = 3n$ operações resulta em $O(n^2)$ acessos. Union by Rank e Tarjan, em contraste, crescem de forma muito mais contida, com comportamento aproximadamente linear em $n$ --- reflexo de operações com custo sublinear acumuladas sobre $\Theta(m) = \Theta(n)$ operações. A análise quantitativa dessa diferença, por meio do expoente empírico de crescimento, é retomada adiante, na discussão de classes de complexidade.
+A versão ingênua apresenta crescimento claramente superlinear: multiplicando $n$ por 10 (de 10.000 para 100.000), o número de acessos cresce por um fator de aproximadamente 101. Esse valor é compatível com comportamento quadrático total, já que custo $O(n)$ por operação acumulado sobre $m = 3n$ operações resulta em $O(n^2)$ acessos. Union by Rank e Tarjan, em contraste, crescem de forma muito mais contida, com comportamento aproximadamente linear em $n$. É o reflexo esperado de operações com custo sublinear acumuladas sobre $\Theta(m) = \Theta(n)$ chamadas. O expoente empírico de crescimento, apresentado mais adiante, quantifica essa diferença de forma direta.
 
-A Figura~\ref{fig:ops_todas} ilustra a disparidade absoluta entre as variantes. A curva do Naive domina completamente o gráfico, enquanto Rank e Tarjan ficam próximas do eixo horizontal na mesma escala. Em $n = 10^5$, o Naive realiza mais de 3.750 vezes mais acessos que Tarjan.
+A Figura~\ref{fig:ops_todas} ilustra a disparidade absoluta entre as variantes. A curva do Naive domina completamente o gráfico, enquanto Rank e Tarjan ficam próximas do eixo horizontal na mesma escala. Em $n = 10^5$, o Naive realiza cerca de 3.800 vezes mais acessos que Tarjan.
 
 \begin{figure}[!ht]
 \centering
@@ -209,7 +209,7 @@ A Figura~\ref{fig:ops_todas} ilustra a disparidade absoluta entre as variantes. 
 \label{fig:ops_todas}
 \end{figure}
 
-A Figura~\ref{fig:ops_rank_tarjan} faz o zoom entre Rank e Tarjan. A compressão de caminho reduz o número de acessos em cerca de 33\% de forma consistente em todas as entradas testadas.
+A Figura~\ref{fig:ops_rank_tarjan} faz o zoom entre Rank e Tarjan. A compressão de caminho reduz o número de acessos em cerca de 34\% de forma consistente em todas as entradas testadas.
 
 \begin{figure}[!ht]
 \centering
@@ -239,7 +239,7 @@ A Tabela~\ref{tab:tempo} apresenta os tempos de execução medidos.
 \end{tabular}
 \end{table}
 
-Os tempos de execução, medidos após fase de \textit{warm-up} do JIT, seguem a mesma hierarquia das operações de acesso. A versão Naive atinge quase 14,5 segundos em $n = 10^5$, enquanto Rank e Tarjan ficam abaixo de 90 ms --- uma diferença superior a 160 vezes. Tarjan é mais rápido que Rank em todos os pontos, exceto em $n = 10.000$ (5,98 ms vs.\ 5,94 ms), diferença dentro da margem de variação de medição única.
+Os tempos de execução, medidos após a fase de \textit{warm-up} do JIT, seguem a mesma hierarquia das contagens de acesso. Em $n = 10^5$, a versão Naive chega perto de 16,2 segundos, enquanto Rank e Tarjan ficam abaixo de 70 ms. A diferença passa de 230 vezes. Tarjan é mais rápido que Rank em todos os pontos testados; a vantagem é consistente, embora pequena em termos absolutos.
 
 A Figura~\ref{fig:tempo_todas} evidencia essa disparidade em escala linear. A curva do Naive cresce de forma abrupta após $n = 10^4$, enquanto Rank e Tarjan permanecem praticamente sobrepostas à base do gráfico.
 
@@ -250,7 +250,7 @@ A Figura~\ref{fig:tempo_todas} evidencia essa disparidade em escala linear. A cu
 \label{fig:tempo_todas}
 \end{figure}
 
-Para isolar a diferença entre as duas variantes otimizadas, a Figura~\ref{fig:tempo_rank_tarjan} apresenta apenas Rank e Tarjan. Observa-se que Tarjan mantém vantagem consistente em todos os pontos exceto $n = 10.000$, onde as curvas praticamente se encontram.
+Para isolar a diferença entre as duas variantes otimizadas, a Figura~\ref{fig:tempo_rank_tarjan} apresenta apenas Rank e Tarjan. Tarjan mantém vantagem consistente em todos os pontos, ainda que o ganho absoluto sobre Rank seja pequeno quando se considera o desvio padrão amostral.
 
 \begin{figure}[!ht]
 \centering
@@ -297,7 +297,7 @@ A Figura~\ref{fig:log} usa escala logarítmica no eixo vertical. Nessa escala, c
 \label{fig:log}
 \end{figure}
 
-A Figura~\ref{fig:custo_aresta} mostra o custo médio por aresta. Para o Naive, esse custo cresce linearmente com $n$ (reflexo do comportamento $O(n)$ por operação). Para Rank, o crescimento é lento e logarítmico. Para Tarjan, o custo permanece praticamente constante --- essa estabilidade é a manifestação empírica mais direta da complexidade amortizada $O(\alpha(n))$.
+A Figura~\ref{fig:custo_aresta} mostra o custo médio por aresta. No Naive, esse custo cresce linearmente com $n$, como seria de se esperar de operações $O(n)$. Rank apresenta crescimento lento, compatível com uma dependência logarítmica. Tarjan é o caso mais interessante: o custo por aresta fica praticamente plano ao longo de duas ordens de grandeza, e é essa estabilidade que corresponde, empiricamente, à complexidade amortizada $O(\alpha(n))$.
 
 \begin{figure}[!ht]
 \centering
@@ -310,9 +310,9 @@ A Figura~\ref{fig:custo_aresta} mostra o custo médio por aresta. Para o Naive, 
 \section{Conclusão}
 \label{sec:conclusao}
 
-Os experimentos respondem às duas perguntas propostas na introdução. Quanto à primeira --- em que escala a implementação ingênua deixa de ser viável ---, os resultados são bastante claros: já em $n = 10.000$, a versão Naive gasta quase 57 ms enquanto Rank e Tarjan ficam abaixo de 6 ms; em $n = 100.000$, a diferença passa de 160 vezes no tempo e de 3.750 vezes no número de acessos. Para qualquer aplicação de MST em escala real, o Naive é simplesmente inviável.
+A primeira pergunta da introdução era em que escala a implementação ingênua deixa de ser viável. Os experimentos respondem de forma bastante direta: já em $n = 10.000$, a versão Naive gasta perto de 51 ms, enquanto Rank e Tarjan ficam abaixo de 5,5 ms. Em $n = 10^5$, a diferença passa de 230 vezes no tempo e de 3.800 vezes no número de acessos. Para qualquer aplicação de MST em escala real, Naive é simplesmente inviável.
 
-Quanto à segunda questão --- o ganho marginal de acrescentar Path Compression ao Union by Rank ---, o resultado é positivo mas mais modesto: a compressão reduz os acessos em cerca de 33\% e o tempo em torno de 6\% em $n = 10^5$. Isso é suficiente para manter Tarjan consistentemente mais rápido que Rank, mas a grande conquista já havia sido feita pelo Union by Rank. O resultado prático mais importante é que, com a estrutura de Tarjan, o custo do DSU deixa de dominar o algoritmo de Kruskal, cujo gargalo passa a ser a ordenação das arestas em $O(m \log m)$.
+A segunda pergunta mirava o ganho marginal de acrescentar Path Compression ao Union by Rank. O resultado é positivo, mas mais modesto do que o passo anterior: a compressão reduz os acessos em cerca de 34\% e o tempo em torno de 8\% em $n = 10^5$. É suficiente para manter Tarjan consistentemente à frente de Rank, mas a conquista principal já havia sido feita pelo Union by Rank. Na prática, o que importa mais é que, com a estrutura completa de Tarjan, o custo do DSU deixa de dominar o Kruskal: o gargalo passa a ser a ordenação das arestas em $O(m \log m)$.
 
 \subsection*{Limitações}
 
