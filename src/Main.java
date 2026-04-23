@@ -45,7 +45,7 @@ public class Main {
         }
     }
 
-    // roda kruskal num grafo simples pra mostrar que funciona
+    // roda kruskal num grafo simples e valida que as 3 variantes concordam
     private static void exemploKruskal() {
         System.out.println();
         System.out.println("--- Exemplo: Grafo com 6 vertices ---");
@@ -68,6 +68,8 @@ public class Main {
 
         DSU[] variantes = { new DSUNaive(), new DSURank(), new DSUTarjan() };
 
+        double pesoReferencia = Double.NaN;
+
         for (DSU dsu : variantes) {
             // copia pra cada execucao
             List<Aresta> copia = new ArrayList<>(arestas);
@@ -84,6 +86,19 @@ public class Main {
                 System.out.print(a + "  ");
             }
             System.out.println();
+
+            // valida: todas as variantes tem que chegar no mesmo peso de MST
+            if (Double.isNaN(pesoReferencia)) {
+                pesoReferencia = resultado.pesoTotal;
+            } else if (Math.abs(pesoReferencia - resultado.pesoTotal) > 1e-9) {
+                throw new AssertionError(
+                    "Peso divergente para " + dsu.getNome() + ": " +
+                    resultado.pesoTotal + " (esperado " + pesoReferencia + ")"
+                );
+            }
         }
+
+        System.out.println();
+        System.out.println("Validacao OK: as 3 variantes concordam no peso da MST.");
     }
 }
