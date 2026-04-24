@@ -57,14 +57,13 @@ public class Main {
         arestas.add(new Aresta(3, 4, 6));
         arestas.add(new Aresta(4, 5, 7));
 
-        DSU[] variantes = {
-                new DSUNaive(),
-                new DSURank(),
-                new DSUTarjan()
-        };
+        DSU[] variantes = { new DSUNaive(), new DSURank(), new DSUTarjan() };
+
+        double pesoReferencia = Double.NaN;
 
         for (DSU dsu : variantes) {
-            Kruskal.ResultadoKruskal resultado = Kruskal.executarDetalhado(6, new ArrayList<>(arestas), dsu);
+            Kruskal.ResultadoKruskal resultado =
+                    Kruskal.executarDetalhado(6, new ArrayList<>(arestas), dsu);
 
             System.out.println();
             System.out.println("Variante: " + dsu.getNome());
@@ -75,6 +74,15 @@ public class Main {
                 System.out.print(aresta + "  ");
             }
             System.out.println();
+
+            if (Double.isNaN(pesoReferencia)) {
+                pesoReferencia = resultado.pesoTotal;
+            } else if (Math.abs(pesoReferencia - resultado.pesoTotal) > 1e-9) {
+                throw new AssertionError("Peso diferente entre as variantes.");
+            }
         }
+
+        System.out.println();
+        System.out.println("Validacao OK: as 3 variantes concordam no peso da MST.");
     }
 }

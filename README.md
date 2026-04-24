@@ -19,10 +19,12 @@ O menu mostra:
 
 - exemplo pequeno de Kruskal
 - benchmark em formato CSV
-- benchmark detalhado com medias
+- benchmark detalhado com medias e desvio padrao
 
 ## Como gerar os graficos
 
 ```bash
-python3 gerar_graficos.py
+python3 gerar_graficos.py benchmark_detalhado.csv
 ```
+
+Se o CSV ainda nao existir, rode a opcao 3 do menu primeiro para gera-lo.
